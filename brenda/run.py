@@ -81,12 +81,16 @@ def spot(opts, conf):
         'block_device_map' : bdm,
         }
 
+    if opts.availability_zone:
+         run_args['availability_zone_group'] = opts.availability_zone
     print "----------------------------"
     print "AMI ID:", ami_id
     print "Max bid price", price
     print "Request type:", reqtype
     print "Instance type:", itype
     print "Instance count:", opts.n_instances
+    if opts.availability_zone:
+         print "Availability zone:", opts.availability_zone
     if snap_description:
         print "Project EBS snapshot:", snap_description
     if istore_dev:

@@ -113,6 +113,8 @@ Examples:
                       help="Maximum price in dollars per hour to bid on spot instances, overrides config variable BID_PRICE")
     parser.add_option("-P", "--persistent", action="store_true", dest="persistent",
                       help="Make spot requests persistent")
+    parser.add_option("-z", "--zone", dest="availability_zone",
+                       help="Availability zone to request the instance in")
     parser.add_option("-T", "--terminate", action="store_true", dest="terminate",
                       help="For stop, terminate EC2 instances instead of stopping them (required for spot instances)")
     parser.add_option("-I", "--idle", action="store_true", dest="idle",
