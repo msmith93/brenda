@@ -810,38 +810,57 @@ NOTES -- how to create a Brenda AMI
 -----------------------------------
 
 While Brenda already has a link to an existing AMI that has Blender
-and Brenda pre-installed, you can build your own AMI using the
+and Brenda pre-installed, the public AMI is out of date, and you can build your own AMI using the
 following procedure.
 
-To create an EC2 AMI capable of acting as a Brenda node,
-use the Ubuntu 12.04 x64 AMI as a starting point, then
-execute these commands as root.
+### 1. Initial Ubuntu setup
+Use the Ubuntu 18.04 x64 AMI as a starting point, then execute these commands as root.
 
 ```
-$ perl -p -i.bak -e 's/^disable_root: 1/disable_root: 0/' /etc/cloud/cloud.cfg
-$ perl -p -i.bak -e 's/.*ssh-rsa/ssh-rsa/' /root/.ssh/authorized_keys
-$ add-apt-repository -y ppa:irie/blender
+$ perl -i -pe 's/disable_root: true/disable_root: false/' /etc/cloud/cloud.cfg
+$ perl -i -pe 's/.*(ssh-rsa .*)/\1/' /root/.ssh/authorized_keys
+```
+
+### 2. Install CUDA drivers (if using GPU rendering)
+If you want to utilize GPU rendering, you'll need to follow [Amazon's instructions](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/install-nvidia-driver.html) to install the appropriate CUDA driver for your instance type (G2, P2, P3). I have not done thorough testing, but I normally use a fleet of p2.xlarge instances, as this has historically been the best way to get the most GPU power per dollar. I also read somewhere (but have not verified) that 1 GPU per frame is optimal for Cycles renders. 
+
+You also need to create a file to tell Blender to use the GPU for rendering. I put the following in `/opt/cuda_setup.py`:
+
+```python
+import bpy
+
+bpy.context.user_preferences.addons['cycles'].preferences.compute_device_type = 'CUDA'
+bpy.context.user_preferences.addons['cycles'].preferences.devices[0].use = True
+```
+
+Now you can append `-P cuda_setup.py` to your frame template to tell Blender to use the GPU. 
+
+### 3. Blender and general dependencies
+```bash
+$ add-apt-repository ppa:thomas-schiex/blender
 $ apt-get update
 $ apt-get install -y blender python-pip gcc python-dev libcurl4-openssl-dev git unzip
 $ pip install -U boto
 $ pip install -U s3cmd
 ```
 
-Next, download and install Brenda:
+### 4. Next, download and install Brenda.
 
-```
-$ git clone http://github.com/jamesyonan/brenda.git
+```bash
+$ git clone http://github.com/gwhobbs/brenda.git
 $ cd brenda
 $ python setup.py install
 ```
 
-Now save the AMI.  The resulting image will have all dependencies
+### 5. Save the AMI.
+The resulting image will have all dependencies
 necessary to run Blender and Brenda.
 
+### 6. Prepare for publishing (optional)
 If you intend to make a public AMI, be sure to clean the instance
 filesystem of security-related files before you snapshot it:
 
-```
+```bash
 $ rm -rf /root/.bash_history /home/ubuntu/.bash_history
 $ rm -rf /root/.cache /home/ubuntu/.sudo_as_admin_successful /home/ubuntu/.cache /var/log/auth.log /var/log/lastlog
 $ rm -rf /root/.ssh/authorized_keys /home/ubuntu/.ssh/authorized_keys /root/.ssh/authorized_keys.bak /home/ubuntu/.ssh/authorized_keys.bak
@@ -851,7 +870,7 @@ Note: make sure not to delete /root/.ssh/authorized_keys until the moment you
 are ready to snapshot the instance, because doing so will prevent you from logging
 into the instance again by ssh.
 
-Finally, if you want to make your AMI public, use the following command
+Finally, use the following command to make the AMI public
 (requires EC2 command line tools):
 
     $ ec2-modify-image-attribute MY_AMI --launch-permission --add all
