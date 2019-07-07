@@ -82,7 +82,7 @@ def spot(opts, conf):
         }
 
     if opts.availability_zone:
-         run_args['availability_zone_group'] = opts.availability_zone
+         run_args['placement'] = opts.availability_zone
     print "----------------------------"
     print "AMI ID:", ami_id
     print "Max bid price", price
