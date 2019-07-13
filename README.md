@@ -32,7 +32,7 @@ Table of contents
 * [Subframe rendering](#subframe-rendering)
 * [Multiframe rendering](#multiframe-rendering)
 * [Rendering large projects using EBS snapshots](#rendering-large-projects-using-ebs-snapshots)
-* [Uploading your project to the AWS cloud](#uploading-your-project-to-the-aws-cloud)
+* [Uploading your project data to the AWS cloud](#uploading-your-project-data-to-the-aws-cloud)
 * [How to create a Brenda AMI](#how-to-create-a-brenda-ami)
 
 Introduction
