@@ -1,5 +1,5 @@
-Brenda -- Blender render farm software for Amazon Web Services.
-===============================================================
+Brenda
+======
 
 Brenda uses Amazon EC2, S3, and SQS to implement a distributed
 render farm using low-cost EC2 spot instances.  Using Brenda,
@@ -13,6 +13,9 @@ instances being created and terminated at random during
 the course of a render job, as is often the case with spot
 market volatility.
 
+James Yonan's talk
+------------------
+
 You can view James Yonan's Brenda talk at Blender
 Conference 2013 here:
 
@@ -20,45 +23,48 @@ Conference 2013 here:
 
 Talk notes are in doc/brenda-talk-blendercon-2013.pdf
 
+Included tools
+--------------
+
 Brenda includes five tools which are outlined below.  To see
 detailed help for each tool, run the tool with the -h option.
 
-1. __brenda-work__ -- used to create and populate an SQS queue with
+1. __brenda-work__ – used to create and populate an SQS queue with
    render tasks.  A render task is a short (often one-line) shell
    script that runs Blender to render a single frame or subframe
    in a project.  Uses the SQS API.
 
-2. __brenda-run__ -- used to start EC2 instances running Brenda,
+2. __brenda-run__ – used to start EC2 instances running Brenda,
    either as on-demand instances or spot instances at a given
    maximum bid price.  Uses the EC2 API.
 
-3. __brenda-tool__ -- used to monitor the operation of an EC2 render
+3. __brenda-tool__ – used to monitor the operation of an EC2 render
    farm.  It allows an ssh or rsync command to be simultaneously
    executed on all nodes in the farm.  Uses EC2 API and requires
    a standard unix shell where ssh and rsync are available and
    can be run from the command line.
 
-4. __brenda-ebs__ -- a simple tool that creates a new EBS volume of
+4. __brenda-ebs__ – a simple tool that creates a new EBS volume of
    a specified size and attaches it to a newly started t1.micro
    EC2 instance.
 
-5. __brenda-node__ -- worker script to be run on the render farm nodes
+5. __brenda-node__ – worker script to be run on the render farm nodes
    themselves.  It reads tasks from an SQS queue, executes the task
    (usually render operations), and copies the task products (such
    as rendered PNG frames) to S3.  brenda-node is usually not run
    directly by the user, but is remotely instantiated by brenda-run.
    Uses the SQS and S3 APIs.
 
-PLATFORMS SUPPORTED
+Platforms supported
 -------------------
 
 The Brenda client software is command-line oriented and has currently
-been tested on Mac OS X and Linux only.
+been tested on macOS and Linux only.
 
-TUTORIAL
+Tutorial
 --------
 
-This tutorial is intended for use on Mac OS X or Linux.
+This tutorial is intended for use on macOS or Linux.
 
 If you don't have an AWS (Amazon Web Services) account, sign up
 for one now.
@@ -119,7 +125,7 @@ and disadvantages:
     EBS snapshot is a kind of point-in-time copy of an EBS
     volume that many EC2 instances can concurrently access.
 
-    __Pros__:  Efficient and scalable -- EBS snapshots can be up
+    __Pros__:  Efficient and scalable – EBS snapshots can be up
     to 1 TB in size, and Brenda supports attaching up to
     66 EBS snapshots to each render farm instance.
 
@@ -242,7 +248,7 @@ Using a text editor, create a file called "frame-template" that
 contains the above line.  This is a simple template that is designed
 to render one frame at a time (as a more advanced exercise, it is also
 possible to create a subframe rendering template that will break the
-smallest unit of render work down to a portion of a frame -- this
+smallest unit of render work down to a portion of a frame – this
 could be used to accelerate the rendering of a still, or to cut
 down the time spent processing each unit of work in animations where
 each frame takes many computer-hours to render).
@@ -508,7 +514,7 @@ of running instances to 4:
 
     $ brenda-tool -T prune 4
 
-The prune capability is smart about stopping instances -- it will
+The prune capability is smart about stopping instances – it will
 stop instances that have most recently completed a task, to minimize the
 amount of lost work, i.e. tasks terminated before completion.
 
