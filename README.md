@@ -68,7 +68,7 @@ Brenda to interact with AWS.
 
 Next, download and install Brenda on the client machine.
 
-    $ git clone http://github.com/jamesyonan/brenda.git
+    $ git clone http://github.com/gwhobbs/brenda.git
     $ cd brenda
     $ python setup.py install
 
@@ -298,15 +298,16 @@ This indicates that the c1.xlarge instance (a reasonably fast VM
 with 8 cores) is currently renting for US$0.07 per hour.
 
 AWS offers many different instance types that offer different levels
-of performance/cost.  Some of the instances suitable for use
-as render farm workers include:
+of performance/cost.  Some of the instances that may be suitable for 
+use as render farm workers include:
 
-| Instance                | Baseline Spot Price as of 2013.11
-| --------                | ---------------------------------
-| c1.xlarge               | US$0.07/hour
-| m2.xlarge (default)     | US$0.035/hour
-| m3.2xlarge              | US$0.115/hour
-| m3.xlarge               | US$0.0575/hour
+| Instance                | Baseline Spot Price as of 2019.07      | Notes
+| --------                | ---------------------------------      | -----
+| c5.xlarge               | US$0.066/hour                          | 
+| p2.xlarge (default)     | US$0.341/hour                          | Be sure to add -P `setup_cuda.py` to frame template to enable GPU rendering
+| c5.24xlarge             | US$1.555/hour                          | 
+| r4.xlarge               | US$0.069/hour                          | Untested
+| m3.xlarge               | US$0.0624/hour                         | Untested
 
 To see the current spot price of a given EC2 instance in several
 availability zones:
@@ -377,10 +378,10 @@ the status will show something like this:
 ```
 $ brenda-run status
 Active Instances
-  ami-e7c4988e 0:01:51 ec2-107-20-36-70.compute-1.amazonaws.com
-  ami-e7c4988e 0:01:51 ec2-50-16-67-202.compute-1.amazonaws.com
-  ami-e7c4988e 0:01:51 ec2-54-205-52-227.compute-1.amazonaws.com
-  ami-e7c4988e 0:01:50 ec2-54-224-220-141.compute-1.amazonaws.com
+  ami-0f423cdef7e0d3b82 0:01:51 ec2-107-20-36-70.compute-1.amazonaws.com
+  ami-0f423cdef7e0d3b82 0:01:51 ec2-50-16-67-202.compute-1.amazonaws.com
+  ami-0f423cdef7e0d3b82 0:01:51 ec2-54-205-52-227.compute-1.amazonaws.com
+  ami-0f423cdef7e0d3b82 0:01:50 ec2-54-224-220-141.compute-1.amazonaws.com
 Spot Requests
   sir-54b91c35 RegionInfo:us-east-1 one-time 2013-10-24T05:32:16.000Z $0.07 <Status: fulfilled>
   sir-97762e35 RegionInfo:us-east-1 one-time 2013-10-24T05:32:16.000Z $0.07 <Status: fulfilled>
@@ -394,10 +395,10 @@ above, your instances should be started immediately:
 ```
 $ brenda-run status
 Active Instances
-  ami-e7c4988e 0:00:23 ec2-107-20-72-84.compute-1.amazonaws.com
-  ami-e7c4988e 0:00:23 ec2-54-211-251-85.compute-1.amazonaws.com
-  ami-e7c4988e 0:00:23 ec2-54-226-31-134.compute-1.amazonaws.com
-  ami-e7c4988e 0:00:23 ec2-54-234-204-209.compute-1.amazonaws.com
+  ami-0f423cdef7e0d3b82 0:00:23 ec2-107-20-72-84.compute-1.amazonaws.com
+  ami-0f423cdef7e0d3b82 0:00:23 ec2-54-211-251-85.compute-1.amazonaws.com
+  ami-0f423cdef7e0d3b82 0:00:23 ec2-54-226-31-134.compute-1.amazonaws.com
+  ami-0f423cdef7e0d3b82 0:00:23 ec2-54-234-204-209.compute-1.amazonaws.com
 ```
 
 At this point, the render job is running.  There are several methods you can
@@ -485,8 +486,8 @@ Kill all active instances:
     $ brenda-run -T stop
 
 
-NOTES -- stopping the render farm
----------------------------------
+Stopping the render farm
+------------------------
 
 The simplest way to stop the render farm after all frames have been rendered
 is by setting the config var "DONE=shutdown" in your ~/.brenda.conf file
@@ -523,9 +524,31 @@ value of 55:
 To try out the command without actually terminating any instances, add
 the -d flag (dry run).
 
+Enabling GPU rendering
+----------------------
 
-NOTES -- performance evaluation
--------------------------------
+If you are using an instance that supports GPU rendering (like p2.xlarge), 
+you need to add `-P setup_cuda.py` to the end of your frame template. This
+will configure Brenda to use CUDA for rendering and enable the first GPU 
+as the CUDA device:
+
+    blender -b *.blend -F PNG -o $OUTDIR/frame_###### -s $START -e $END -j $STEP -t 0 -a -P setup_cuda.py
+
+**Note:** Currently, this only supports single-GPU instances. This issue
+has not yet been fixed because, historically, single-GPU instances have
+offered the most computing power per dollar.
+
+Choosing an availability zone
+-----------------------------
+
+Sometimes, the default availability zone will not be the cheapest. You can
+select an availability zone manually using the -z option on brenda-run 
+like so:
+
+`brenda-run -z us-east-1c -N 8 -i m1.medium -p 0.013 -P spot`
+
+Performance evaluation
+----------------------
 
 AWS has many instance types at various levels of price and performance.
 
@@ -613,8 +636,8 @@ those instance types, pushing them down in the "Tasks per US$"
 ranking.
 
 
-NOTES -- subframe rendering
----------------------------
+Subframe rendering
+------------------
 
 Normally, the smallest unit of work in Brenda is the frame.  While this
 is often sufficient, sometimes it is advantageous to use a smaller unit
@@ -656,8 +679,8 @@ tiles, use the following command to generate a work queue for the first
 
     brenda-work -T subframe-template -e 240 -X 8 -Y 8 -d push
 
-NOTES -- multiframe rendering
------------------------------
+Multiframe rendering
+--------------------
 
 Multiframe rendering means that each unit of work processed by the
 render farm includes multiple frames (in this sense, it is the opposite
@@ -684,8 +707,8 @@ blender -b *.blend -F PNG -o $OUTDIR/frame_###### -s 221 -e 230 -j 1 -t 0 -a
 blender -b *.blend -F PNG -o $OUTDIR/frame_###### -s 231 -e 240 -j 1 -t 0 -a
 ```
 
-NOTES -- rendering large projects using EBS snapshots
------------------------------------------------------
+Rendering large projects using EBS snapshots
+--------------------------------------------
 
 Brenda supports both AWS S3 and EBS snapshots as a means of providing
 your project data to the render farm.
@@ -776,8 +799,8 @@ The EBS snapshot EBS_SNAPSHOT_NAME will be mounted as a subdirectory
 called DIRECTORY in the same directory as your .blend project.
 
 
-NOTES -- uploading your project data to the AWS cloud
------------------------------------------------------
+Uploading your project data to the AWS cloud
+--------------------------------------------
 
 To use Brenda, you must first upload your project data to the
 AWS cloud so that the data resides on either S3 or an EBS
@@ -806,8 +829,8 @@ that can be used to optimize this process:
    available to the render farm.
 
 
-NOTES -- how to create a Brenda AMI
------------------------------------
+How to create a Brenda AMI
+--------------------------
 
 While Brenda already has a link to an existing AMI that has Blender
 and Brenda pre-installed, the public AMI is out of date, and you can build your own AMI using the
@@ -835,6 +858,8 @@ bpy.context.user_preferences.addons['cycles'].preferences.devices[0].use = True
 
 Now you can append `-P cuda_setup.py` to your frame template to tell Blender to use the GPU. 
 
+**Note:** This version of `cuda_setup.py` will only work on single-GPU instances. I haven't updated it to support multiple GPUs because, historically, single-GPU instances have seemed to offer the most computing power per dollar. 
+
 ### 3. Blender and general dependencies
 ```bash
 $ add-apt-repository ppa:thomas-schiex/blender
@@ -852,11 +877,7 @@ $ cd brenda
 $ python setup.py install
 ```
 
-### 5. Save the AMI.
-The resulting image will have all dependencies
-necessary to run Blender and Brenda.
-
-### 6. Prepare for publishing (optional)
+### 5. Prepare for publishing (optional)
 If you intend to make a public AMI, be sure to clean the instance
 filesystem of security-related files before you snapshot it:
 
@@ -870,7 +891,14 @@ Note: make sure not to delete /root/.ssh/authorized_keys until the moment you
 are ready to snapshot the instance, because doing so will prevent you from logging
 into the instance again by ssh.
 
-Finally, use the following command to make the AMI public
-(requires EC2 command line tools):
+### 6. Save the AMI.
+The resulting image will have all dependencies
+necessary to run Blender and Brenda.
 
-    $ ec2-modify-image-attribute MY_AMI --launch-permission --add all
+### 7. Launch and test
+Set `AMI_ID` in your `~/.brenda.conf` like so:
+
+`AMI_ID=ami-0f02c90c31cb257d5`
+
+### 8. Publish (optional)
+If you want to publish the image, go to Modify Image Permissions in the AMI page of the AWS console, and set the image permissions to public. 

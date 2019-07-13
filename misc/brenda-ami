@@ -4,7 +4,7 @@ if [ "$ALL" = "1" ]; then
     export BRENDA_AMI_ID='*'
 else
     # blender-base AMI
-    export BRENDA_AMI_ID=ami-61316d08
+    export BRENDA_AMI_ID=ami-0f423cdef7e0d3b82
 fi
 export BRENDA_NO_EBS=1
 cd
