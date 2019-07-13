@@ -35,8 +35,10 @@ Table of contents
 * [Uploading your project to the AWS cloud](#uploading-your-project-to-the-aws-cloud)
 * [How to create a Brenda AMI](#how-to-create-a-brenda-ami)
 
-James Yonan's talk
-------------------
+Introduction
+------------
+
+### James Yonan's talk
 
 You can view James Yonan's Brenda talk at Blender
 Conference 2013 here:
@@ -45,8 +47,7 @@ Conference 2013 here:
 
 Talk notes are in doc/brenda-talk-blendercon-2013.pdf
 
-Included tools
---------------
+### Included tools
 
 Brenda includes five tools which are outlined below.  To see
 detailed help for each tool, run the tool with the -h option.
@@ -77,14 +78,15 @@ detailed help for each tool, run the tool with the -h option.
    directly by the user, but is remotely instantiated by brenda-run.
    Uses the SQS and S3 APIs.
 
-Platforms supported
--------------------
+### Platforms supported
 
 The Brenda client software is command-line oriented and has currently
 been tested on macOS and Linux only.
 
-Getting started
----------------
+Tutorial (basic use)
+--------------------
+
+### Getting started
 
 This tutorial is intended for use on macOS or Linux.
 
@@ -514,8 +516,7 @@ Kill all active instances:
     $ brenda-run -T stop
 
 
-Stopping the render farm
-------------------------
+### Stopping the render farm
 
 The simplest way to stop the render farm after all frames have been rendered
 is by setting the config var "DONE=shutdown" in your ~/.brenda.conf file
@@ -552,8 +553,10 @@ value of 55:
 To try out the command without actually terminating any instances, add
 the -d flag (dry run).
 
-Enabling GPU rendering
-----------------------
+Advanced features
+-----------------
+
+### Enabling GPU rendering
 
 If you are using an instance that supports GPU rendering (like p2.xlarge), 
 you need to add `-P setup_cuda.py` to the end of your frame template. This
@@ -566,8 +569,7 @@ as the CUDA device:
 has not yet been fixed because, historically, single-GPU instances have
 offered the most computing power per dollar.
 
-Choosing an availability zone
------------------------------
+### Choosing an availability zone
 
 Sometimes, the default availability zone will not be the cheapest. You can
 select an availability zone manually using the -z option on brenda-run 
@@ -575,8 +577,7 @@ like so:
 
 `brenda-run -z us-east-1c -N 8 -i m1.medium -p 0.013 -P spot`
 
-Performance evaluation
-----------------------
+### Performance evaluation
 
 AWS has many instance types at various levels of price and performance.
 
@@ -664,8 +665,7 @@ those instance types, pushing them down in the "Tasks per US$"
 ranking.
 
 
-Subframe rendering
-------------------
+### Subframe rendering
 
 Normally, the smallest unit of work in Brenda is the frame.  While this
 is often sufficient, sometimes it is advantageous to use a smaller unit
@@ -707,8 +707,7 @@ tiles, use the following command to generate a work queue for the first
 
     brenda-work -T subframe-template -e 240 -X 8 -Y 8 -d push
 
-Multiframe rendering
---------------------
+### Multiframe rendering
 
 Multiframe rendering means that each unit of work processed by the
 render farm includes multiple frames (in this sense, it is the opposite
@@ -735,8 +734,7 @@ blender -b *.blend -F PNG -o $OUTDIR/frame_###### -s 221 -e 230 -j 1 -t 0 -a
 blender -b *.blend -F PNG -o $OUTDIR/frame_###### -s 231 -e 240 -j 1 -t 0 -a
 ```
 
-Rendering large projects using EBS snapshots
---------------------------------------------
+### Rendering large projects using EBS snapshots
 
 Brenda supports both AWS S3 and EBS snapshots as a means of providing
 your project data to the render farm.
@@ -827,8 +825,7 @@ The EBS snapshot EBS_SNAPSHOT_NAME will be mounted as a subdirectory
 called DIRECTORY in the same directory as your .blend project.
 
 
-Uploading your project data to the AWS cloud
---------------------------------------------
+### Uploading your project data to the AWS cloud
 
 To use Brenda, you must first upload your project data to the
 AWS cloud so that the data resides on either S3 or an EBS
@@ -857,14 +854,13 @@ that can be used to optimize this process:
    available to the render farm.
 
 
-How to create a Brenda AMI
---------------------------
+### How to create a Brenda AMI
 
 While Brenda already has a link to an existing AMI that has Blender
 and Brenda pre-installed, the public AMI is out of date, and you can build your own AMI using the
 following procedure.
 
-### 1. Initial Ubuntu setup
+#### 1. Initial Ubuntu setup
 Use the Ubuntu 18.04 x64 AMI as a starting point, then execute these commands as root.
 
 ```
@@ -872,7 +868,7 @@ $ perl -i -pe 's/disable_root: true/disable_root: false/' /etc/cloud/cloud.cfg
 $ perl -i -pe 's/.*(ssh-rsa .*)/\1/' /root/.ssh/authorized_keys
 ```
 
-### 2. Install CUDA drivers (if using GPU rendering)
+#### 2. Install CUDA drivers (if using GPU rendering)
 If you want to utilize GPU rendering, you'll need to follow [Amazon's instructions](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/install-nvidia-driver.html) to install the appropriate CUDA driver for your instance type (G2, P2, P3). I have not done thorough testing, but I normally use a fleet of p2.xlarge instances, as this has historically been the best way to get the most GPU power per dollar. I also read somewhere (but have not verified) that 1 GPU per frame is optimal for Cycles renders. 
 
 You also need to create a file to tell Blender to use the GPU for rendering. I put the following in `/opt/cuda_setup.py`:
@@ -888,7 +884,7 @@ Now you can append `-P cuda_setup.py` to your frame template to tell Blender to 
 
 **Note:** This version of `cuda_setup.py` will only work on single-GPU instances. I haven't updated it to support multiple GPUs because, historically, single-GPU instances have seemed to offer the most computing power per dollar. 
 
-### 3. Blender and general dependencies
+#### 3. Blender and general dependencies
 ```bash
 $ add-apt-repository ppa:thomas-schiex/blender
 $ apt-get update
@@ -897,7 +893,7 @@ $ pip install -U boto
 $ pip install -U s3cmd
 ```
 
-### 4. Next, download and install Brenda.
+#### 4. Next, download and install Brenda.
 
 ```bash
 $ git clone http://github.com/gwhobbs/brenda.git
@@ -905,7 +901,7 @@ $ cd brenda
 $ python setup.py install
 ```
 
-### 5. Prepare for publishing (optional)
+#### 5. Prepare for publishing (optional)
 If you intend to make a public AMI, be sure to clean the instance
 filesystem of security-related files before you snapshot it:
 
@@ -919,14 +915,14 @@ Note: make sure not to delete /root/.ssh/authorized_keys until the moment you
 are ready to snapshot the instance, because doing so will prevent you from logging
 into the instance again by ssh.
 
-### 6. Save the AMI.
+#### 6. Save the AMI.
 The resulting image will have all dependencies
 necessary to run Blender and Brenda.
 
-### 7. Launch and test
+#### 7. Launch and test
 Set `AMI_ID` in your `~/.brenda.conf` like so:
 
 `AMI_ID=ami-0f02c90c31cb257d5`
 
-### 8. Publish (optional)
+#### 8. Publish (optional)
 If you want to publish the image, go to Modify Image Permissions in the AMI page of the AWS console, and set the image permissions to public. 
