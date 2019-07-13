@@ -13,6 +13,28 @@ instances being created and terminated at random during
 the course of a render job, as is often the case with spot
 market volatility.
 
+Table of contents
+-----------------
+
+### Introduction
+* [James Yonan's talk](#james-yonans-talk)
+* [Included tools](#included-tools)
+* [Platforms supported](#platforms-supported)
+
+### Tutorial (basic use)
+* [Getting started](#getting-started)
+* [Stopping the render farm](#stopping-the-render-farm)
+
+### Advanced features
+* [Enabling GPU rendering](#enabling-gpu-rendering)
+* [Choosing an availability zone](#choosing-an-availability-zone)
+* [Performance evaluation](#performance-evaluation)
+* [Subframe rendering](#subframe-rendering)
+* [Multiframe rendering](#multiframe-rendering)
+* [Rendering large projects using EBS snapshots](#rendering-large-projects-using-ebs-snapshots)
+* [Uploading your project to the AWS cloud](#uploading-your-project-to-the-aws-cloud)
+* [How to create a Brenda AMI](#how-to-create-a-brenda-ami)
+
 James Yonan's talk
 ------------------
 
@@ -61,8 +83,8 @@ Platforms supported
 The Brenda client software is command-line oriented and has currently
 been tested on macOS and Linux only.
 
-Tutorial
---------
+Getting started
+---------------
 
 This tutorial is intended for use on macOS or Linux.
 
