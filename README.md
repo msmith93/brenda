@@ -86,9 +86,9 @@ been tested on macOS and Linux only.
 Tutorial (basic use)
 --------------------
 
-### Getting started
+### First steps
 
-This tutorial is intended for use on macOS or Linux.
+This tutorial is intended for use on macOS or Linux, and Python 2 is required.
 
 If you don't have an AWS (Amazon Web Services) account, sign up
 for one now.
@@ -102,6 +102,8 @@ Next, download and install Brenda on the client machine.
     $ cd brenda
     $ python setup.py install
 
+### EC2 key pair setup
+
 You will need an RSA-based SSH key to access the VMs (virtual machines) that
 we will spawn using the AWS EC2 service.  These VMs are often referred to as
 "instances", and we will be creating many of these to act as worker nodes in
@@ -114,6 +116,8 @@ a new key pair on AWS and download the private key to ~/.ssh/id_rsa.brenda
 Next, obtain the AWS "Access Key" and "Secret Key" from the AWS
 management console.  These credentials will allow the Brenda
 client tools to access AWS resources in your account.
+
+### File store considerations (S3 or EBS)
 
 We will also need a tool for accessing the AWS S3 file store, because we
 will be using S3 for two purposes:
@@ -159,6 +163,8 @@ Continuing with the tutorial, we will use the S3 method (1), but
 note the section "rendering large projects using EBS snapshots"
 below if your data set is large and you want to use method (2).
 
+### Uploading your project
+
 Next, we will bundle up our Blender project and save it to S3 so
 the render farm can access it (make sure that the Blender project
 uses relative paths for file access so that the render farm instances
@@ -198,6 +204,8 @@ To verify that the file was copied, list the files in the bucket:
 
     $ s3cmd ls s3://PROJECT_BUCKET
 
+### Local Brenda configuration
+
 Next, we will create a Brenda configuration file.  The Brenda
 client tools will look for the configuration file in ~/.brenda.conf
 
@@ -231,6 +239,8 @@ rendered frames.
 __DONE=shutdown__ tells the render farm instances that they should
 automatically shut themselves down after the render is complete.
 
+### About the render queue
+
 In the next step, we will create the Work Queue for our render
 farm.  A work queue is basically a list of many small scripts
 that, when run together, will render all of the frames in our
@@ -260,6 +270,8 @@ blender -b *.blend -F PNG -o $OUTDIR/frame_###### -s 238 -e 238 -j 1 -t 0 -a
 blender -b *.blend -F PNG -o $OUTDIR/frame_###### -s 239 -e 239 -j 1 -t 0 -a
 blender -b *.blend -F PNG -o $OUTDIR/frame_###### -s 240 -e 240 -j 1 -t 0 -a
 ```
+
+### Adding jobs to the queue
 
 The first step in creating a work queue is to start with a Script Template.
 A script template describes how to run Blender to accomplish a unit of work.
@@ -296,11 +308,15 @@ If you make a mistake and want to delete the current queue and start over:
 
     $ brenda-work reset
 
+### One-time initialization
+
 Finally, as part of our initial setup, we will do a one-time initialization
 of a new AWS account to create security group and ssh key profiles.  This
 only needs to be done once per AWS account:
 
     $ brenda-run init
+
+### Checking prices on instance types
 
 At this point, we are ready to start rendering.
 
@@ -359,6 +375,8 @@ For more info on EC2 instance types see:
 
   http://aws.amazon.com/ec2/instance-types/
 
+### Provisioning render nodes
+
 Continuing with the tutorial, let's bid on 4 c1.xlarge instances
 at US$0.07 per hour.  Note that when you run the following command,
 you are agreeing to be charged US$0.28 per hour total to rent 4 VMs
@@ -384,6 +402,8 @@ it is possible to use on-demand instances instead (Note however that
 on-demand instance are considerably more expensive than spot instances).
 
     $ brenda-run -i c1.xlarge -N 4 demand
+
+### Checking the status of render node instances
 
 To see the current status of your instances and spot requests:
 
@@ -431,6 +451,8 @@ Active Instances
   ami-0f423cdef7e0d3b82 0:00:23 ec2-54-234-204-209.compute-1.amazonaws.com
 ```
 
+### Tracking the status of a job
+
 At this point, the render job is running.  There are several methods you can
 use to track its progress.
 
@@ -465,6 +487,8 @@ Spot Requests
   sir-af53be34 RegionInfo:us-east-1 one-time 2013-10-23T09:12:30.000Z $0.07 <Status: instance-terminated-by-price>
 ```
 
+### Recovery from spot instance termination
+
 Brenda has actually been designed to recover gracefully from instance
 termination and can handle the case where instances are randomly
 created and destroyed during the course of the render.  It is able to
@@ -482,6 +506,8 @@ the S3 frame bucket.  In particular,
    in the "brenda-run spot" command.  To create a persistent spot
    instance, use the -P flag when running the "brenda-run spot" command.
 
+### Retrieving rendered frames
+
 While the render job progresses, you can view the frames that have been
 rendered thus far and copied to the S3 file store:
 
@@ -498,6 +524,8 @@ the frames:
     $ mkdir frames
     $ s3cmd get -r s3://FRAME_BUCKET frames
 
+### Accessing error log files
+
 If something goes wrong during the render, Brenda will normally not shut
 down the instances to give you a chance to download the log files:
 
@@ -506,6 +534,8 @@ down the instances to give you a chance to download the log files:
 
 If you want to cancel the render job and shut down the instances,
 there are commands for that as well:
+
+### Shutting things down
 
 Cancel pending spot requests that have not been activated yet:
 
@@ -516,7 +546,7 @@ Kill all active instances:
     $ brenda-run -T stop
 
 
-### Stopping the render farm
+### Advanced shutdown procedures
 
 The simplest way to stop the render farm after all frames have been rendered
 is by setting the config var "DONE=shutdown" in your ~/.brenda.conf file
