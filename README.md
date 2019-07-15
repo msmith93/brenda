@@ -22,10 +22,25 @@ Table of contents
 * [Platforms supported](#platforms-supported)
 
 ### Tutorial (basic use)
-* [Getting started](#getting-started)
-* [Stopping the render farm](#stopping-the-render-farm)
+* [First steps](#first-steps)
+* [EC2 key pair setup](#ec2-key-pair-setup)
+* [Files store considerations (S3 or EBS)](#file-store-considerations-s3-or-ebs)
+* [Uploading your project](#uploading-your-project)
+* [Local Brenda configuration](#local-brenda-configuration)
+* [About the render queue](#about-the-render-queue)
+* [Adding jobs to the queue](#adding-jobs-to-the-queue)
+* [One-time initialization](#one-time-initialization)
+* [Checking prices on instance types](#checking-prices-on-instance-types)
+* [Provisioning render nodes](#provisioning-render-nodes)
+* [Checking the status of render node instances](#checking-the-status-of-render-node-instances)
+* [Tracking the status of a job](#tracking-the-status-of-a-job)
+* [Recovery from spot instance termination](#recovery-from-spot-instance-termination)
+* [Retrieving rendered frames](#retrieving-rendered-frames)
+* [Accessing error log files](#accessing-error-log-files)
+* [Shutting things down](#shutting-things-down)
 
 ### Advanced features
+* [Advanced shutdown procedures](#advanced-shutdown-procedures)
 * [Enabling GPU rendering](#enabling-gpu-rendering)
 * [Choosing an availability zone](#choosing-an-availability-zone)
 * [Performance evaluation](#performance-evaluation)
@@ -546,6 +561,9 @@ Kill all active instances:
     $ brenda-run -T stop
 
 
+Advanced features
+-----------------
+
 ### Advanced shutdown procedures
 
 The simplest way to stop the render farm after all frames have been rendered
@@ -582,9 +600,6 @@ value of 55:
 
 To try out the command without actually terminating any instances, add
 the -d flag (dry run).
-
-Advanced features
------------------
 
 ### Enabling GPU rendering
 
