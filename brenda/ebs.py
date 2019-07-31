@@ -23,7 +23,7 @@ from brenda.ami import AMI_ID
 
 def create_instance_with_ebs(opts, conf, new):
     ami_id = utils.get_opt(opts.ami, conf, 'AMI_ID', default=AMI_ID, must_exist=True)
-    itype = utils.get_opt(opts.ebs_manage_instance_type, conf, 'EBS_MANAGE_INSTANCE_TYPE', default="t1.micro")
+    itype = utils.get_opt(opts.ebs_manage_instance_type, conf, 'EBS_MANAGE_INSTANCE_TYPE', default="t2.micro")
     zone = utils.get_opt(opts.ebs_manage_availability_zone, conf, 'EBS_MANAGE_AVAILABILITY_ZONE')
     ssh_key_name = conf.get("SSH_KEY_NAME", "brenda")
     sec_groups = (conf.get("SECURITY_GROUP", "brenda"),)
