@@ -42,6 +42,7 @@ Table of contents
 ### Advanced features
 * [Advanced shutdown procedures](#advanced-shutdown-procedures)
 * [Enabling GPU rendering](#enabling-gpu-rendering)
+* [Choosing a region](#choosing-another-region)
 * [Choosing an availability zone](#choosing-an-availability-zone)
 * [Performance evaluation](#performance-evaluation)
 * [Subframe rendering](#subframe-rendering)
@@ -613,6 +614,12 @@ as the CUDA device:
 **Note:** Currently, this only supports single-GPU instances. This issue
 has not yet been fixed because, historically, single-GPU instances have
 offered the most computing power per dollar.
+
+### Choosing a region
+
+Add this line in your brenda.conf file `EC2_REGION=[region]`, where `[region]` is one of the AWS region codes found [here](http://docs.aws.amazon.com/general/latest/gr/rande.html#ec2_region) under amazon EC2.
+
+Note: you will need a different AMI and AMI ID when you change regions. You may also need to run thorugh part of the setup procedure in the other region (I have not tested this yet.)
 
 ### Choosing an availability zone
 
