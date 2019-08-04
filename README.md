@@ -42,7 +42,7 @@ Table of contents
 ### Advanced features
 * [Advanced shutdown procedures](#advanced-shutdown-procedures)
 * [Enabling GPU rendering](#enabling-gpu-rendering)
-* [Choosing a region](#choosing-another-region)
+* [Choosing a region](#choosing-a-region)
 * [Choosing an availability zone](#choosing-an-availability-zone)
 * [Performance evaluation](#performance-evaluation)
 * [Subframe rendering](#subframe-rendering)
