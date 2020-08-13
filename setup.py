@@ -10,10 +10,6 @@ with open('brenda/version.py') as f:
 
 ext_modules = []
 
-if platform.system() == 'Linux':
-    ext_modules = [ Extension("paracurl", ["paracurl/paracurl.c"],
-                              libraries=['curl']) ]
-
 setup(name = "Brenda",
       version = VERSION,
       packages = [ 'brenda' ],
