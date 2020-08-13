@@ -46,6 +46,19 @@ def get_conn(conf, resource_type="s3"):
         conn = boto3.resource(resource_type, **aws_creds(conf))
     return conn
 
+def get_ec2_client(conf):
+    region = conf.get('S3_REGION')
+    resource_type = "ec2"
+    if region:
+        #conn = boto.s3.connect_to_region(region, **aws_creds(conf))
+        conn = boto3.client(resource_type, region_name=region, **aws_creds(conf))
+        if not conn:
+            raise ValueErrorRetry("Could not establish {} connection to region {}".format(resource_type, region))
+    else:
+        #conn = boto.connect_s3(**aws_creds(conf))
+        conn = boto3.client(resource_type, **aws_creds(conf))
+    return conn
+
 def parse_s3_url(url):
     if url.startswith('s3://'):
         return url[5:].split('/', 1)
@@ -154,8 +167,12 @@ def write_sqs_queue(string, queue):
     queue.send_message(MessageBody=string)
 
 def get_ec2_instances_from_conn(conn, instance_ids=None):
-    reservations = conn.ec2.instances.filter(InstanceIds=[instance_ids])
-    return [i for r in reservations for i in r['Instances']]
+    filter_args = {}
+
+    if instance_ids:
+        filter_args['InstanceIds'] = instance_ids
+    reservations = conn.instances.filter(**filter_args)
+    return [r for r in reservations]
 
 def get_ec2_instances(conf, instance_ids=None):
     conn = get_conn(conf, "ec2")
@@ -315,10 +332,11 @@ def get_work_dir(conf):
         utils.makedirs(work_dir)
     return work_dir
 
-def add_instance_store(opts, conf, bdm, itype):
+def add_instance_store(opts, conf, blkprops, itype):
     if not itype.startswith('t1.'):
         dev = utils.blkdev(0, istore=True)
-        bdm[dev] = boto.ec2.blockdevicemapping.EBSBlockDeviceType(ephemeral_name='ephemeral0')
+        blkprops['DeviceName'] = dev
+        blkprops['Ebs'] = {'VolumeSize': 4, 'DeleteOnTermination': True}
         return dev
 
 def additional_ebs_iterator(conf):
@@ -333,24 +351,35 @@ def additional_ebs_iterator(conf):
 
 def blk_dev_map(opts, conf, itype, snapshots):
     if not int(conf.get('NO_EBS', '0')):
-        bdm = boto.ec2.blockdevicemapping.BlockDeviceMapping()
+        bdm = []
+        block_device = {}
         snap = project_ebs_snapshot(conf)
         snap_id = translate_snapshot_name(conf, snap, snapshots)
         snap_description = []
         if snap_id:
             dev = utils.blkdev(0)
-            bdm[dev] = boto.ec2.blockdevicemapping.EBSBlockDeviceType(snapshot_id=snap_id, delete_on_termination=True)
+            block_device['DeviceName'] = dev
+            block_device['Ebs']['SnapshotId'] = snap_id
+            block_device['Ebs']['DeleteOnTermination'] = True
             snap_description.append((snap, snap_id, dev))
+            bdm.append(block_device)
         i = 0
         for k in additional_ebs_iterator(conf):
             i += 1
+
+            temp_block_device = {}
             snap = parse_ebs_url(conf[k].split(',')[0])
             snap_id = translate_snapshot_name(conf, snap, snapshots)
             if snap_id:
                 dev = utils.blkdev(i)
-                bdm[dev] = boto.ec2.blockdevicemapping.EBSBlockDeviceType(snapshot_id=snap_id, delete_on_termination=True)
+                temp_block_device['DeviceName'] = dev
+                temp_block_device['Ebs']['SnapshotId'] = snap_id
+                temp_block_device['Ebs']['DeleteOnTermination'] = True
+                bdm.append(temp_block_device)
                 snap_description.append((snap, snap_id, dev))
-        istore_dev = add_instance_store(opts, conf, bdm, itype)
+        istore_block_device = {}
+        istore_dev = add_instance_store(opts, conf, istore_block_device, itype)
+        bdm.append(istore_block_device)
         return bdm, snap_description, istore_dev
     else:
         return None, None, None
