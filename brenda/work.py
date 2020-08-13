@@ -95,4 +95,4 @@ def reset(opts, args, conf):
         if opts.hard:
             conn.delete_queue(q)
         else:
-            q.clear()
+            q.purge()

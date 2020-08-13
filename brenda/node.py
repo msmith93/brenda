@@ -53,14 +53,14 @@ def s3_push_process(opts, args, conf, outdir):
             for f in filenames:
                 path = os.path.join(dirpath, f)
                 print("PUSH", path, "TO", aws.format_s3_url(bucktup, f))
-                aws.put_s3_file(bucktup, path, f)
+                aws.put_s3_file(conf, bucktup, path, f)
             break
 
     try:
         error.retry(conf, do_s3_push)
     except Exception as e:
         print("S3 push failed:", e)
-        sys.exit(1)
+        raise e
     sys.exit(0)
 
 def run_tasks(opts, args, conf):
@@ -153,7 +153,7 @@ def run_tasks(opts, args, conf):
                 # a short script that runs blender to render one
                 # or more frames.
                 _messages = q.receive_messages(MaxNumberOfMessages=1)
-                task.msg = _messages[0]
+                task.msg = None if len(_messages) < 1 else _messages[0]
 
                 # output some debug info
                 print("queue read:", task.msg)
@@ -200,7 +200,7 @@ def run_tasks(opts, args, conf):
                         print("------- Run script %s -------" % (os.path.realpath(script_fn),))
                         print(script, end=' ')
                         print("--------------------------")
-                        task.proc = Subprocess([script_fn]) TODO enable
+                        task.proc = Subprocess([script_fn])
 
                     print("active task:", local.task_active.__dict__)
 

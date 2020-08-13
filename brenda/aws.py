@@ -75,8 +75,8 @@ def s3_get(conf, s3url, dest, etag=None):
         raise ValueError("s3_get: bad s3 url: %r" % (s3url,))
     conn = get_conn(conf, "s3")
     buck = conn.Bucket(s3tup[0])
-    key_ref = conn.Object(buck.name,s3tup[1])
-    key = key_ref.get()
+    object_ref = conn.Object(buck.name,s3tup[1])
+    key = object_ref.get()
     etag = key['ETag']
     content_len = key['ContentLength']
     body = key['Body'].read()
@@ -84,13 +84,19 @@ def s3_get(conf, s3url, dest, etag=None):
         file_out.write(body)
     return content_len, etag
 
-def put_s3_file(bucktup, path, s3name):
+def put_s3_file(conf, bucktup, path, s3name):
     """
     bucktup is the return tuple of get_s3_output_bucket_name
     """
-    k = boto.s3.key.Key(bucktup[0])
-    k.key = bucktup[1][1] + s3name
-    k.set_contents_from_filename(path, reduced_redundancy=True)
+    #k = boto.s3.key.Key(bucktup[0])
+    #k.key = bucktup[1][1] + s3name
+    #k.set_contents_from_filename(path, reduced_redundancy=True)
+
+    conn = get_conn(conf, "s3")
+
+    object_ref = conn.Object(bucktup[1][0],bucktup[1][1] + s3name)
+    object_ref.put(Body=open(path, 'rb'), StorageClass='REDUCED_REDUNDANCY')
+
 
 def format_s3_url(bucktup, s3name):
     """
@@ -148,8 +154,8 @@ def write_sqs_queue(string, queue):
     queue.send_message(MessageBody=string)
 
 def get_ec2_instances_from_conn(conn, instance_ids=None):
-    reservations = conn.get_all_instances(instance_ids=instance_ids)
-    return [i for r in reservations for i in r.instances]
+    reservations = conn.ec2.instances.filter(InstanceIds=[instance_ids])
+    return [i for r in reservations for i in r['Instances']]
 
 def get_ec2_instances(conf, instance_ids=None):
     conn = get_conn(conf, "ec2")
@@ -204,19 +210,19 @@ def filter_instances(opts, conf, hostset=None):
         elif getattr(opts, 'host', None):
             hostset = frozenset((opts.host,))
     inst = [i for i in get_ec2_instances(conf)
-            if i.image_id and i.public_dns_name
-            and threshold_test(i.launch_time)
-            and (imatch is None or i.instance_type in imatch)
-            and (ami is None or ami == i.image_id)
-            and (hostset is None or i.public_dns_name in hostset)]
-    inst.sort(key = lambda i : (i.image_id, i.launch_time, i.public_dns_name))
+            if i.get('ImageId') and i.get('PublicDnsName')
+            and threshold_test(i.get('LaunchTime'))
+            and (imatch is None or i.get('InstanceType') in imatch)
+            and (ami is None or ami == i.get('ImageId'))
+            and (hostset is None or i.get('PublicDnsName') in hostset)]
+    inst.sort(key = lambda i : (i.get('ImageId'), i.get('LaunchTime'), i.get('PublicDnsName')))
     return inst
 
 def shutdown_by_public_dns_name(opts, conf, dns_names):
     iids = []
     for i in get_ec2_instances(conf):
-        if i.public_dns_name in dns_names:
-            iids.append(i.id)
+        if i.get('PublicDnsName') in dns_names:
+            iids.append(i.get('InstanceId'))
     shutdown(opts, conf, iids)
 
 def shutdown(opts, conf, iids):
@@ -365,8 +371,8 @@ def get_instance_id_self():
 
 def get_spot_request_dict(conf):
     ec2 = get_conn(conf, "ec2")
-    requests = ec2.get_all_spot_instance_requests()
-    return dict([(sir.id, sir) for sir in requests])
+    requests = ec2.describe_spot_instance_requests()
+    return dict([(sir.get('SpotInstanceRequestId'), sir) for sir in requests])
 
 def get_spot_request_from_instance_id(conf, iid):
     instances = get_ec2_instances(conf, instance_ids=(iid,))
@@ -375,14 +381,14 @@ def get_spot_request_from_instance_id(conf, iid):
 
 def cancel_spot_request(conf, sir):
     conn = get_conn(conf, "ec2")
-    conn.cancel_spot_instance_requests(request_ids=(sir,))
+    conn.cancel_spot_instance_requests(SpotInstanceRequestIds=(sir,))
 
 def cancel_spot_requests_from_instance_ids(conn, instance_ids):
     instances = get_ec2_instances_from_conn(conn, instance_ids=instance_ids)
-    sirs = [ i.spot_instance_request_id for i in instances if i.spot_instance_request_id ]
+    sirs = [ i.get('SpotInstanceRequestId') for i in instances if i.get('SpotInstanceRequestId') ]
     print("CANCEL", sirs)
     if sirs:
-        conn.cancel_spot_instance_requests(request_ids=sirs)
+        conn.cancel_spot_instance_requests(SpotInstanceRequestIds=sirs)
 
 def config_file_name():
     config = os.environ.get("BRENDA_CONFIG")
