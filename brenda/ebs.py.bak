@@ -1,4 +1,3 @@
-from __future__ import print_function
 # Brenda -- Blender render tool for Amazon Web Services
 # Copyright (C) 2013 James Yonan <james@openvpn.net>
 #
@@ -62,12 +61,12 @@ def create_instance_with_ebs(opts, conf, new):
     if script:
         run_args['user_data'] = script
 
-    print("RUN ARGS")
+    print "RUN ARGS"
     for k, v in sorted(run_args.items()):
-        print("  %s : %r" % (k, v))
-    print("BLK DEV PROPS", blkprops)
-    print("ISTORE DEV", istore_dev)
+        print "  %s : %r" % (k, v)
+    print "BLK DEV PROPS", blkprops
+    print "ISTORE DEV", istore_dev
     if not opts.dry_run:
         ec2 = aws.get_ec2_conn(conf)
         reservation = ec2.run_instances(**run_args)
-        print(reservation)
+        print reservation
