@@ -206,8 +206,7 @@ def format_uptime(sec):
     return str(datetime.timedelta(seconds=sec))
 
 def get_uptime(now, aws_launch_time):
-    lt = boto.utils.parse_ts(aws_launch_time)
-    return int(now - calendar.timegm(lt.timetuple()))
+    return int(now - calendar.timegm(aws_launch_time))
 
 def filter_instances(opts, conf, hostset=None):
     def threshold_test(aws_launch_time):
@@ -227,19 +226,19 @@ def filter_instances(opts, conf, hostset=None):
         elif getattr(opts, 'host', None):
             hostset = frozenset((opts.host,))
     inst = [i for i in get_ec2_instances(conf)
-            if i.get('ImageId') and i.get('PublicDnsName')
-            and threshold_test(i.get('LaunchTime'))
-            and (imatch is None or i.get('InstanceType') in imatch)
-            and (ami is None or ami == i.get('ImageId'))
-            and (hostset is None or i.get('PublicDnsName') in hostset)]
-    inst.sort(key = lambda i : (i.get('ImageId'), i.get('LaunchTime'), i.get('PublicDnsName')))
+            if i.image_id and i.public_dns_name
+            and threshold_test(i.launch_time)
+            and (imatch is None or i.instance_type in imatch)
+            and (ami is None or ami == i.image_id)
+            and (hostset is None or i.public_dns_name in hostset)]
+    inst.sort(key = lambda i : (i.image_id, i.launch_time, i.public_dns_name))
     return inst
 
 def shutdown_by_public_dns_name(opts, conf, dns_names):
     iids = []
     for i in get_ec2_instances(conf):
-        if i.get('PublicDnsName') in dns_names:
-            iids.append(i.get('InstanceId'))
+        if i.public_dns_name in dns_names:
+            iids.append(i.instance_id)
     shutdown(opts, conf, iids)
 
 def shutdown(opts, conf, iids):
