@@ -325,7 +325,6 @@ def run_tasks(opts, args, conf):
     spot_request_id = None
     if int(conf.get('RUNNING_ON_EC2', '1')):
         try:
-            # TODO: re-enable
             instance_id = aws.get_instance_id_self()
             spot_request_id = aws.get_spot_request_from_instance_id(conf, instance_id)
             print("Spot request ID:", spot_request_id)
