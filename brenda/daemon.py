@@ -1,3 +1,6 @@
+from __future__ import print_function
+from builtins import str
+from builtins import object
 import os, sys, time, signal, atexit
 
 class Daemon(object):
@@ -24,7 +27,7 @@ class Daemon(object):
             if pid > 0:
                 # exit first parent
                 sys.exit(0)
-        except OSError, e:
+        except OSError as e:
             sys.stderr.write("fork #1 failed: %d (%s)\n" % (e.errno, e.strerror))
             sys.exit(1)
 
@@ -40,7 +43,7 @@ class Daemon(object):
             if pid > 0:
                 # exit from second parent
                 sys.exit(0)
-        except OSError, e:
+        except OSError as e:
             sys.stderr.write("fork #2 failed: %d (%s)\n" % (e.errno, e.strerror))
             sys.exit(1)
 
@@ -65,7 +68,7 @@ class Daemon(object):
     def delpid(self):
         try:
             os.remove(self.pidfile)
-        except Exception, e:
+        except Exception as e:
             pass
 
     def start(self):
@@ -112,12 +115,12 @@ class Daemon(object):
             while True:
                 os.kill(pid, signal.SIGTERM)
                 time.sleep(0.1)
-        except OSError, err:
+        except OSError as err:
             err = str(err)
             if err.find("No such process") > 0:
                 self.delpid()
             else:
-                print str(err)
+                print(str(err))
                 sys.exit(1)
 
     def restart(self):
