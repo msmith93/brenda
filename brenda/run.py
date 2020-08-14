@@ -69,7 +69,6 @@ def spot(opts, conf):
     user_data = None
     if not opts.idle:
         user_data = script
-    print("USER DATA {}".format(user_data))
     ssh_key_name = conf.get("SSH_KEY_NAME", "brenda")
     sec_groups = (conf.get("SECURITY_GROUP", "brenda"),)
     launch_spec = {}

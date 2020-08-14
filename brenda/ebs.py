@@ -74,7 +74,6 @@ def create_instance_with_ebs(opts, conf, new):
     for k, v in sorted(run_args.items()):
         print("  %s : %r" % (k, v))
     print("BLK DEV PROPS", blkprops)
-    print("BLK MAPPINGS", bdm)
     print("ISTORE DEV", istore_dev)
     if not opts.dry_run:
         ec2 = aws.get_conn(conf, "ec2")

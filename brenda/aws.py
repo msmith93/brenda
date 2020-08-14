@@ -37,12 +37,10 @@ def aws_creds(conf):
 def get_conn(conf, resource_type="s3"):
     region = conf.get('S3_REGION')
     if region:
-        #conn = boto.s3.connect_to_region(region, **aws_creds(conf))
         conn = boto3.resource(resource_type, region_name=region, **aws_creds(conf))
         if not conn:
             raise ValueErrorRetry("Could not establish {} connection to region {}".format(resource_type, region))
     else:
-        #conn = boto.connect_s3(**aws_creds(conf))
         conn = boto3.resource(resource_type, **aws_creds(conf))
     return conn
 
@@ -50,12 +48,10 @@ def get_ec2_client(conf):
     region = conf.get('S3_REGION')
     resource_type = "ec2"
     if region:
-        #conn = boto.s3.connect_to_region(region, **aws_creds(conf))
         conn = boto3.client(resource_type, region_name=region, **aws_creds(conf))
         if not conn:
             raise ValueErrorRetry("Could not establish {} connection to region {}".format(resource_type, region))
     else:
-        #conn = boto.connect_s3(**aws_creds(conf))
         conn = boto3.client(resource_type, **aws_creds(conf))
     return conn
 
@@ -101,9 +97,6 @@ def put_s3_file(conf, bucktup, path, s3name):
     """
     bucktup is the return tuple of get_s3_output_bucket_name
     """
-    #k = boto.s3.key.Key(bucktup[0])
-    #k.key = bucktup[1][1] + s3name
-    #k.set_contents_from_filename(path, reduced_redundancy=True)
 
     conn = get_conn(conf, "s3")
 
