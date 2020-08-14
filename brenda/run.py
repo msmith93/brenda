@@ -18,6 +18,7 @@ from __future__ import print_function
 import os, time
 from brenda import aws, utils
 from brenda.ami import AMI_ID
+import base64
 
 def demand(opts, conf):
     ami_id = utils.get_opt(opts.ami, conf, 'AMI_ID', default=AMI_ID, must_exist=True)
@@ -68,6 +69,7 @@ def spot(opts, conf):
     user_data = None
     if not opts.idle:
         user_data = script
+    print("USER DATA {}".format(user_data))
     ssh_key_name = conf.get("SSH_KEY_NAME", "brenda")
     sec_groups = (conf.get("SECURITY_GROUP", "brenda"),)
     launch_spec = {}
@@ -292,7 +294,7 @@ cd "$B"
         if v:
             script += "%s=%s\n" % (k, v)
     script += tail
-    return script
+    return base64.b64encode(script.encode()).decode("ascii")
 
 def print_script(opts, conf, script):
     if not opts.idle:

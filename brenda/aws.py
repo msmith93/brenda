@@ -180,7 +180,7 @@ def get_ec2_instances(conf, instance_ids=None):
 
 def get_snapshots(conf):
     conn = get_conn(conf, "ec2")
-    return conn.get_all_snapshots(owner='self')
+    return conn.snapshots.all()
 
 def get_volumes(conf):
     conn = get_conn(conf, "ec2")
@@ -206,7 +206,7 @@ def format_uptime(sec):
     return str(datetime.timedelta(seconds=sec))
 
 def get_uptime(now, aws_launch_time):
-    return int(now - calendar.timegm(aws_launch_time))
+    return int(now - aws_launch_time.timestamp())
 
 def filter_instances(opts, conf, hostset=None):
     def threshold_test(aws_launch_time):

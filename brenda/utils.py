@@ -114,7 +114,7 @@ def system_return_output(cmd, capture_stderr=False):
     except subprocess.CalledProcessError as e:
         if capture_stderr:
             error = e.output
-    return str_nl(output) + str_nl(error)
+    return str_nl(str(output)) + str_nl(str(error))
 
 def get_opt(opt, conf, conf_key, default=None, must_exist=False):
     def g():

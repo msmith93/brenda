@@ -86,8 +86,7 @@ def push(opts, args, conf):
 def status(opts, args, conf):
     q = aws.get_sqs_queue(conf)
     if q is not None:
-        #print("Queued tasks:", q.count())
-        print("No longer supported on boto3") # TODO: Add support
+        print("Queued tasks:", q.attributes.get('ApproximateNumberOfMessages'))
 
 def reset(opts, args, conf):
     q, conn = aws.get_sqs_conn_queue(conf)
