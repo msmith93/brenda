@@ -179,19 +179,79 @@ Continuing with the tutorial, we will use the S3 method (1), but
 note the section "rendering large projects using EBS snapshots"
 below if your data set is large and you want to use method (2).
 
-### Uploading your project
+### Local Brenda configuration
 
+Next, we will create a Brenda configuration file.  By default, The Brenda
+client tools will look for the configuration file in ~/.brenda.conf. 
+To change this location, set a `BRENDA_CONFIG` environment variable to the desired path.
+
+Create your Brenda configuration file now with the following content, 
+making sure
+to replace PROJECT_BUCKET and FRAME_BUCKET with the names you
+chose above.
+
+```
+INSTANCE_TYPE=m3.xlarge
+PROJECT_BUCKETs3://PROJECT_BUCKET/
+BLENDER_PROJECT=myproject
+WORK_QUEUE=sqs://FRAME_BUCKET
+RENDER_OUTPUT=s3://FRAME_BUCKET
+DONE=shutdown
+```
+
+To explain the above configuration settings in detail:
+
+__INSTANCE_TYPE__ describes the type of EC2 instance (i.e. virtual machine)
+that will make up the render farm.  Different instance types offer
+different levels of performance and cost.
+
+__BLENDER_PROJECT__ is the name of our project file on S3.  It
+can be an s3:// or file:// URL.
+
+__WORK_QUEUE__ is the name of an SQS queue that we will create for the
+purpose of staging and sequencing the tasks in our render.
+
+__RENDER_OUTPUT__ is the name of an S3 bucket that will contain our
+rendered frames.
+
+__DONE=shutdown__ tells the render farm instances that they should
+automatically shut themselves down after the render is complete.
+
+### Uploading your project
 Next, we will bundle up our Blender project and save it to S3 so
 the render farm can access it (make sure that the Blender project
 uses relative paths for file access so that the render farm instances
 will be able to follow them).
 
-To do this, create a folder with your .blend file and any other supporting
-files necessary to render frames, then compress it using tar or zip.
-For example, supposing that the project directory is called "myproject",
-run:
+To do this, create a folder named BLENDER_PROJECT (as it is defined in your config) 
+with your .blend file and any other supporting files necessary to render frames.
 
-    $ tar cfzv myproject.tar.gz myproject
+```
+cd brenda # Make you project directory in the brenda repo if you want to use make commands
+mkdir myproject
+mv myproject.blend cuda_setup.py myproject
+```
+
+Then, set up your S3 buckets and upload your project with `make` commands or manually.
+
+#### With Make Commands (Option 1)
+Package your project
+```BLENDER_CONFIG=<path_to_config> make package```
+
+Create your S3 buckets if they don't yet exist
+```BLENDER_CONFIG=<path_to_config> make buckets```
+
+Push your project to S3
+```BLENDER_CONFIG=<path_to_config> make push```
+
+#### Manual Instructions (Option 2)
+
+Compress the project folder using tar or zip.
+For example, supposing that the BLENDER_PROJECT is set to "myproject",
+run:
+```
+tar cfzv myproject.tar.gz myproject
+```
 
 Next, create an S3 "bucket" on AWS to store the myproject.tar.gz file we
 created above.  S3 buckets are sort of like folders, but they must have a
@@ -219,41 +279,6 @@ bucket:
 To verify that the file was copied, list the files in the bucket:
 
     $ s3cmd ls s3://PROJECT_BUCKET
-
-### Local Brenda configuration
-
-Next, we will create a Brenda configuration file.  The Brenda
-client tools will look for the configuration file in ~/.brenda.conf
-
-Create ~/.brenda.conf now with the following content, making sure
-to replace PROJECT_BUCKET and FRAME_BUCKET with the names you
-chose above.
-
-```
-INSTANCE_TYPE=m3.xlarge
-BLENDER_PROJECT=s3://PROJECT_BUCKET/myproject.tar.gz
-WORK_QUEUE=sqs://FRAME_BUCKET
-RENDER_OUTPUT=s3://FRAME_BUCKET
-DONE=shutdown
-```
-
-To explain the above configuration settings in detail:
-
-__INSTANCE_TYPE__ describes the type of EC2 instance (i.e. virtual machine)
-that will make up the render farm.  Different instance types offer
-different levels of performance and cost.
-
-__BLENDER_PROJECT__ is the name of our project file on S3.  It
-can be an s3:// or file:// URL.
-
-__WORK_QUEUE__ is the name of an SQS queue that we will create for the
-purpose of staging and sequencing the tasks in our render.
-
-__RENDER_OUTPUT__ is the name of an S3 bucket that will contain our
-rendered frames.
-
-__DONE=shutdown__ tells the render farm instances that they should
-automatically shut themselves down after the render is complete.
 
 ### About the render queue
 

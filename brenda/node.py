@@ -332,9 +332,10 @@ def run_tasks(opts, args, conf):
             print("Error determining spot instance request:", e)
 
     # get project (from s3:// or file://)
-    blender_project = conf.get('BLENDER_PROJECT')
+    blender_project = conf.get('PROJECT_BUCKET', '') + conf.get('BLENDER_PROJECT', '')
     if not blender_project:
-        raise ValueError("BLENDER_PROJECT not defined in configuration")
+        raise ValueError("BLENDER_PROJECT and PROJECT_BUCKET not defined in configuration")
+    blender_project += '.tar.gz'
 
     # directory that blender will be run from
     proj_dir = get_project(conf, blender_project)

@@ -259,6 +259,7 @@ cd "$B"
     keys = [
         'AWS_ACCESS_KEY',
         'AWS_SECRET_KEY',
+        'PROJECT_BUCKET',
         'BLENDER_PROJECT',
         'WORK_QUEUE',
         'RENDER_OUTPUT'

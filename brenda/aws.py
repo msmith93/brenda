@@ -292,7 +292,7 @@ def parse_ebs_url(key):
         return key[6:]
 
 def project_ebs_snapshot(conf):
-    return parse_ebs_url(conf.get('BLENDER_PROJECT'))
+    return parse_ebs_url(conf.get('PROJECT_BUCKET') + conf.get('BLENDER_PROJECT') + '.tar.gz')
 
 def translate_snapshot_name(conf, snap_name, snapshots=None):
     if snap_name:
