@@ -18,7 +18,7 @@ from __future__ import print_function
 from future import standard_library
 standard_library.install_aliases()
 import time, http.client, socket
-import boto.exception
+import botocore
 
 class ValueErrorRetry(ValueError):
     """
@@ -39,7 +39,7 @@ def retry(conf, action):
         try:
             ret = action()
         # These are the exception types that justify a retry -- extend this list as needed
-        except (http.client.IncompleteRead, socket.error, boto.exception.BotoClientError, ValueErrorRetry) as e:
+        except (http.client.IncompleteRead, socket.error, botocore.exceptions.ClientError, ValueErrorRetry) as e:
             now = int(time.time())
             if now > reset + reset_period:
                 print("******* RETRY RESET")

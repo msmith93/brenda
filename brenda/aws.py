@@ -21,8 +21,6 @@ standard_library.install_aliases()
 from builtins import str
 from past.utils import old_div
 import os, time, datetime, calendar, urllib.request, urllib.error, urllib.parse
-import boto, boto.sqs, boto.s3, boto.ec2
-import boto.utils
 import boto3
 from brenda import utils
 from brenda.error import ValueErrorRetry

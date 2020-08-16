@@ -1,5 +1,4 @@
-from distutils.core import setup, Extension
-import platform
+from distutils.core import setup
 
 # original version
 VERSION="0.5"
