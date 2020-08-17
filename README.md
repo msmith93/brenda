@@ -104,7 +104,7 @@ Tutorial (basic use)
 
 ### First steps
 
-This tutorial is intended for use on macOS or Linux, and Python 2 is required.
+This tutorial is intended for use on macOS or Linux, and Python 3 is required.
 
 If you don't have an AWS (Amazon Web Services) account, sign up
 for one now.
@@ -113,8 +113,8 @@ Next, download and install Brenda on the client machine.
 
     $ git clone http://github.com/msmith93/brenda.git
     $ cd brenda
-    $ pip3 install -r requirements.txt
-    $ pip3 install .
+    $ pip install -r requirements.txt
+    $ pip install .
 
 ### EC2 key pair setup
 
