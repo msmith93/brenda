@@ -79,7 +79,7 @@ def spot(opts, conf):
     launch_spec['SecurityGroups'] = sec_groups
     launch_spec['BlockDeviceMappings'] = bdm
     if opts.availability_zone:
-         launch_spec['Placement'] = opts.availability_zone
+         launch_spec['Placement'] = {'AvailabilityZone': opts.availability_zone}
     run_args = {
         'SpotPrice'         : price,
         'Type'          : reqtype,
@@ -193,9 +193,19 @@ def init(opts, conf):
         try:
             sec_group = conf.get("SECURITY_GROUP", "brenda")
             print("Creating AWS security group %r." % (sec_group,))
-            sg = ec2.create_security_group(sec_group, 'Brenda security group')
-            sg.authorize('tcp', 22, 22, '0.0.0.0/0')  # ssh
-            sg.authorize('icmp', -1, -1, '0.0.0.0/0') # all ICMP
+            sg = ec2.create_security_group(GroupName=sec_group, Description='Brenda security group')
+            # ssh
+            ec2.authorize_security_group_ingress(FromPort=22,
+                                                 ToPort=22,
+                                                 CidrIp='0.0.0.0/0',
+                                                 GroupName=sec_group,
+                                                 IpProtocol='tcp')
+            # all ICMP
+            ec2.authorize_security_group_ingress(FromPort=-1,
+                                                 ToPort=-1,
+                                                 CidrIp='0.0.0.0/0',
+                                                 GroupName=sec_group,
+                                                 IpProtocol='icmp')
         except Exception as e:
             print("Error creating security group", e)
 
