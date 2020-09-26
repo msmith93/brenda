@@ -904,10 +904,18 @@ that can be used to optimize this process:
    available to the render farm.
 
 
+### Existing Brenda AMIs
+
+The following Brenda AMIs can be used, depending on your required Blender Version
+
+AMI ID                | Blender Version | CUDA Support?
+---                   | ---             | --- 
+ami-03bb972b1aa6051db | Blender 2.83.4  | Yes
+ami-0f423cdef7e0d3b82 | Blender 2.80    | Yes
+
 ### How to create a Brenda AMI
 
-While Brenda already has a link to an existing AMI that has Blender
-and Brenda pre-installed, the public AMI is out of date, and you can build your own AMI using the
+If none of the existing AMIs fit your needs, you can build your own AMI using the
 following procedure.
 
 #### 1. Initial Ubuntu setup
