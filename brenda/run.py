@@ -34,6 +34,7 @@ def demand(opts, conf):
     run_args = {
         'ImageId'      : ami_id,
         'MaxCount'     : opts.n_instances,
+        'MinCount'     : opts.n_instances,
         'InstanceType' : itype,
         'UserData'     : user_data,
         'KeyName'      : ssh_key_name,
@@ -55,7 +56,7 @@ def demand(opts, conf):
     aws.get_done(opts, conf) # sanity check on DONE var
     if not opts.dry_run:
         ec2 = aws.get_ec2_client(conf)
-        reservation = ec2.create_instances(**run_args)
+        reservation = ec2.run_instances(**run_args)
         print(reservation)
 
 def spot(opts, conf):
