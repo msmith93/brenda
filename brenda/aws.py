@@ -239,14 +239,16 @@ def shutdown(opts, conf, iids):
         print("TERMINATE", iids)
         if not opts.dry_run and iids:
             conn = get_conn(conf, "ec2")
-            cancel_spot_requests_from_instance_ids(conn, instance_ids=iids)
+            ec2_client = get_ec2_client(conf)
+            cancel_spot_requests_from_instance_ids(conn, ec2_client, instance_ids=iids)
             ec2_client = get_ec2_client(conf)
             ec2_client.terminate_instances(InstanceIds=iids)
     else:
         print("SHUTDOWN", iids)
         if not opts.dry_run and iids:
             conn = get_conn(conf, "ec2")
-            cancel_spot_requests_from_instance_ids(conn, instance_ids=iids)
+            ec2_client = get_ec2_client(conf)
+            cancel_spot_requests_from_instance_ids(conn, ec2_client, instance_ids=iids)
             ec2_client = get_ec2_client(conf)
             ec2_client.stop_instances(InstanceIds=iids)
 
@@ -401,15 +403,15 @@ def get_spot_request_from_instance_id(conf, iid):
         return instances[0].spot_instance_request_id
 
 def cancel_spot_request(conf, sir):
-    conn = get_conn(conf, "ec2")
+    conn = get_ec2_client(conf)
     conn.cancel_spot_instance_requests(SpotInstanceRequestIds=(sir,))
 
-def cancel_spot_requests_from_instance_ids(conn, instance_ids):
+def cancel_spot_requests_from_instance_ids(conn, ec2_client, instance_ids):
     instances = get_ec2_instances_from_conn(conn, instance_ids=instance_ids)
     sirs = [ i.spot_instance_request_id for i in instances if i.spot_instance_request_id ]
     print("CANCEL", sirs)
     if sirs:
-        conn.cancel_spot_instance_requests(SpotInstanceRequestIds=sirs)
+        ec2_client.cancel_spot_instance_requests(SpotInstanceRequestIds=sirs)
 
 def config_file_name():
     config = os.environ.get("BRENDA_CONFIG")

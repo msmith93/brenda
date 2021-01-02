@@ -110,7 +110,7 @@ def system_return_output(cmd, capture_stderr=False):
     output = ""
     error = ""
     try:
-        output = subprocess.check_output(cmd, stderr=subprocess.STDOUT)
+        output = subprocess.check_output(cmd, stderr=subprocess.STDOUT, encoding='utf-8')
     except subprocess.CalledProcessError as e:
         if capture_stderr:
             error = e.output

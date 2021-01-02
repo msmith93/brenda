@@ -1,0 +1,15 @@
+#!/bin/bash
+set -e
+B=$HOME/blender_projects/brenda
+cd $B
+export BRENDA_CONFIG=$B/test/brenda_remote.conf
+rm -rf $B/test/work
+s3cmd del -rf s3://troubleinparadise
+brenda-work reset
+brenda-work -e 10 -T test/remote-task push
+#brenda-node -c test/brenda.conf
+brenda-run -P -p 0.07 -i t3.medium -N 1 spot
+s3cmd ls s3://troubleinparadise >ls.tmp
+cat ls.tmp
+wc ls.tmp
+rm ls.tmp
