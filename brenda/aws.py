@@ -240,13 +240,15 @@ def shutdown(opts, conf, iids):
         if not opts.dry_run and iids:
             conn = get_conn(conf, "ec2")
             cancel_spot_requests_from_instance_ids(conn, instance_ids=iids)
-            conn.terminate_instances(instance_ids=iids)
+            ec2_client = get_ec2_client(conf)
+            ec2_client.terminate_instances(InstanceIds=iids)
     else:
         print("SHUTDOWN", iids)
         if not opts.dry_run and iids:
             conn = get_conn(conf, "ec2")
             cancel_spot_requests_from_instance_ids(conn, instance_ids=iids)
-            conn.stop_instances(instance_ids=iids)
+            ec2_client = get_ec2_client(conf)
+            ec2_client.stop_instances(InstanceIds=iids)
 
 def get_ssh_pubkey_fn(opts, conf):
     v = conf.get('SSH_PUBKEY')
@@ -389,8 +391,8 @@ def get_instance_id_self():
     return the_page
 
 def get_spot_request_dict(conf):
-    ec2 = get_conn(conf, "ec2")
-    requests = ec2.describe_spot_instance_requests()
+    ec2 = get_ec2_client(conf)
+    requests = ec2.describe_spot_instance_requests().get('SpotInstanceRequests')
     return dict([(sir.get('SpotInstanceRequestId'), sir) for sir in requests])
 
 def get_spot_request_from_instance_id(conf, iid):
@@ -404,7 +406,7 @@ def cancel_spot_request(conf, sir):
 
 def cancel_spot_requests_from_instance_ids(conn, instance_ids):
     instances = get_ec2_instances_from_conn(conn, instance_ids=instance_ids)
-    sirs = [ i.get('SpotInstanceRequestId') for i in instances if i.get('SpotInstanceRequestId') ]
+    sirs = [ i.spot_instance_request_id for i in instances if i.spot_instance_request_id ]
     print("CANCEL", sirs)
     if sirs:
         conn.cancel_spot_instance_requests(SpotInstanceRequestIds=sirs)
