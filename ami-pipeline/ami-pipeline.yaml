@@ -33,16 +33,24 @@ Resources:
         phases:
           - name: build
             steps:
-              - name: DisableRootSsh
+              - name: SetupBrenda
                 action: ExecuteBash
                 inputs:
                   commands:
-                    - "perl -i -pe 's/disable_root: true/disable_root: false/' /etc/cloud/cloud.cfg"
-              - name: AddSshAuthorizedKeys
-                action: ExecuteBash
-                inputs:
-                  commands:
-                    - "perl -i -pe 's/.*(ssh-rsa .*)/\\1/' /root/.ssh/authorized_keys"
+                    - |
+                      perl -i -pe 's/disable_root: true/disable_root: false/' /etc/cloud/cloud.cfg
+                      perl -i -pe 's/.*(ssh-rsa .*)/\\1/' /root/.ssh/authorized_keys
+                      apt-get update
+                      apt-get install -y python3-pip gcc python3-dev libcurl4-openssl-dev git unzip snapd
+                      systemctl restart snapd.seeded.service
+                      snap install blender
+                      git clone http://github.com/msmith93/brenda.git
+                      pushd brenda
+                      pip3 install -Ur requirements.txt
+                      pip3 install -U .
+                      rm -rf /root/.bash_history /home/ubuntu/.bash_history
+                      rm -rf /root/.cache /home/ubuntu/.sudo_as_admin_successful /home/ubuntu/.cache /var/log/auth.log /var/log/lastlog
+                      rm -rf /root/.ssh/authorized_keys /home/ubuntu/.ssh/authorized_keys /root/.ssh/authorized_keys.bak /home/ubuntu/.ssh/authorized_keys.bak
           - name: validate
             steps:
               - name: ValidateBrenda
