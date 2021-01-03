@@ -25,8 +25,8 @@ Resources:
 
   BrendaImageComponent:
     Type: AWS::ImageBuilder::Component
-    Properties: 
-      Data: |
+    Properties: # TODO: branch below
+      Data: | 
         name: BuildBrenda
         description: Adds Brenda dependencies
         schemaVersion: 1.0
@@ -43,8 +43,8 @@ Resources:
                       apt-get update
                       apt-get install -y python3-pip gcc python3-dev libcurl4-openssl-dev git unzip snapd
                       systemctl restart snapd.seeded.service
-                      snap install blender
-                      git clone http://github.com/msmith93/brenda.git
+                      snap install blender --classic
+                      git clone --single-branch --branch feature/ami-pipeline http://github.com/msmith93/brenda.git
                       pushd brenda
                       pip3 install -Ur requirements.txt
                       pip3 install -U .
