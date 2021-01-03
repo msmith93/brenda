@@ -41,6 +41,7 @@ Resources:
                       perl -i -pe 's/disable_root: true/disable_root: false/' /etc/cloud/cloud.cfg
                       perl -i -pe 's/.*(ssh-rsa .*)/\\1/' /root/.ssh/authorized_keys
                       apt-get update
+                      while ps -opid= -C apt-get > /dev/null; do sleep 1; done
                       apt-get install -y python3-pip gcc python3-dev libcurl4-openssl-dev git unzip snapd
                       systemctl restart snapd.seeded.service
                       snap install blender --classic
