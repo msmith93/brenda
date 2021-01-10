@@ -41,10 +41,9 @@ Resources:
                       perl -i -pe 's/disable_root: true/disable_root: false/' /etc/cloud/cloud.cfg
                       perl -i -pe 's/.*(ssh-rsa .*)/\\1/' /root/.ssh/authorized_keys
                       apt-get update
-                      while ps -opid= -C apt-get > /dev/null; do sleep 1; done
+                      while pgrep apt > /dev/null; do sleep 1; done
                       apt-get install -y python3-pip gcc python3-dev libcurl4-openssl-dev git unzip snapd
-                      systemctl restart snapd.seeded.service
-                      snap install blender --classic
+                      snap install blender --channel=2.91/stable --classic
                       git clone --single-branch --branch feature/ami-pipeline http://github.com/msmith93/brenda.git
                       pushd brenda
                       pip3 install -Ur requirements.txt
@@ -61,15 +60,15 @@ Resources:
                     - |
                       sleep 1
                       echo "validating!"
-          - name: test
-            steps:
-              - name: TestBrenda
-                action: ExecuteBash
-                inputs:
-                  commands:
-                    - |
-                      sleep 1
-                      echo "testing!"
+          # - name: test
+          #   steps:
+          #     - name: TestBrenda
+          #       action: ExecuteBash
+          #       inputs:
+          #         commands:
+          #           - |
+          #             sleep 1
+          #             echo "testing!"
       Description: Brenda build component
       Name: BuildBrendaComponent
       Platform: Linux
