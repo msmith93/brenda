@@ -25,7 +25,7 @@ def demand(opts, conf):
     itype = brenda_instance_type(opts, conf)
     snapshots = aws.get_snapshots(conf)
     bdm, snap_description, istore_dev = aws.blk_dev_map(opts, conf, itype, snapshots)
-    script = startup_script(opts, conf, istore_dev)
+    script = startup_script(opts, conf, istore_dev, base64_encode=False)
     user_data = None
     if not opts.idle:
         user_data = script
@@ -235,7 +235,7 @@ def reset_keys(opts, conf):
         except Exception as e:
             print("Error removing security group", e)
 
-def startup_script(opts, conf, istore_dev):
+def startup_script(opts, conf, istore_dev, base64_encode=True):
     login_dir = "/root"
 
     head = "#!/bin/bash\n"
@@ -304,7 +304,11 @@ cd "$B"
         if v:
             script += "%s=%s\n" % (k, v)
     script += tail
-    return base64.b64encode(script.encode()).decode("ascii")
+
+    ret = script
+    if base64_encode:
+        ret = base64.b64encode(script.encode()).decode("ascii")
+    return ret
 
 def print_script(opts, conf, script):
     if not opts.idle:
