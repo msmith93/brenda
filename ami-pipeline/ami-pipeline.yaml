@@ -1,0 +1,133 @@
+AWSTemplateFormatVersion: 2010-09-09
+
+Parameters:
+  BlenderVersion:
+    Type: String
+    Default: 2.91
+    Description: Blender version to install on AMI
+  NvidiaDriverVersion:
+    Type: String
+    Default: 460.32.03
+
+Resources:
+  ImageBuilderLogBucket:
+    Type: AWS::S3::Bucket
+
+  InstanceRole:
+    Type: AWS::IAM::Role
+    Metadata:
+      Comment: Role to be used by instance during image build.
+    Properties:
+      ManagedPolicyArns:
+        - Fn::Sub: arn:${AWS::Partition}:iam::aws:policy/AmazonSSMManagedInstanceCore
+        - Fn::Sub: arn:${AWS::Partition}:iam::aws:policy/EC2InstanceProfileForImageBuilder
+        - Fn::Sub: arn:${AWS::Partition}:iam::aws:policy/AmazonS3FullAccess
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action:
+              - sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service:
+                - ec2.amazonaws.com
+        Version: "2012-10-17"
+
+  BrendaImageComponent:
+    Type: AWS::ImageBuilder::Component
+    Properties:
+      Data: !Sub | 
+        name: BuildBrenda
+        description: Adds Brenda dependencies
+        schemaVersion: 1.0
+        phases:
+          - name: build
+            steps:
+              - name: SetupBrenda
+                action: ExecuteBash
+                inputs:
+                  commands:
+                    - |
+                      perl -i -pe 's/disable_root: true/disable_root: false/' /etc/cloud/cloud.cfg
+                      perl -i -pe 's/.*(ssh-rsa .*)/\\1/' /root/.ssh/authorized_keys
+                      apt-get update
+                      while pgrep apt > /dev/null; do sleep 1; done
+                      apt-get install -y python3-pip gcc python3-dev libcurl4-openssl-dev git unzip snapd
+                      apt-get install libxi6 libxxf86vm1 libxfixes3 libxrender1
+                      curl -fSsl -O https://us.download.nvidia.com/tesla/${NvidiaDriverVersion}/NVIDIA-Linux-x86_64-${NvidiaDriverVersion}.run
+                      sh NVIDIA-Linux-x86_64-${NvidiaDriverVersion}.run --silent
+                      snap install blender --channel=${BlenderVersion}/stable --classic
+                      git clone --single-branch --branch master http://github.com/msmith93/brenda.git
+                      pushd brenda
+                      pip3 install -Ur requirements.txt
+                      pip3 install -U .
+                      rm -rf /root/.bash_history /home/ubuntu/.bash_history
+                      rm -rf /root/.cache /home/ubuntu/.sudo_as_admin_successful /home/ubuntu/.cache /var/log/auth.log /var/log/lastlog
+                      rm -rf /root/.ssh/authorized_keys /home/ubuntu/.ssh/authorized_keys /root/.ssh/authorized_keys.bak /home/ubuntu/.ssh/authorized_keys.bak
+          - name: validate
+            steps:
+              - name: ValidateBrenda
+                action: ExecuteBash
+                inputs:
+                  commands:
+                    - |
+                      sleep 1
+                      echo "validating!"
+          # - name: test
+          #   steps:
+          #     - name: TestBrenda
+          #       action: ExecuteBash
+          #       inputs:
+          #         commands:
+          #           - |
+          #             sleep 1
+          #             echo "testing!"
+      Description: Brenda build component
+      Name: BuildBrendaComponent
+      Platform: Linux
+      Version: 1.0.0
+
+  BrendaImageRecipe:
+    Type: AWS::ImageBuilder::ImageRecipe
+    Properties:
+      Components: 
+        - ComponentArn:
+            Ref: BrendaImageComponent
+      Name: brenda-blender-python3
+      Tags:
+        blenderVersion: 
+          Ref: BlenderVersion 
+      ParentImage: ami-013f17f36f8b1fefb
+      Version: 1.0.0
+
+  InstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Roles:
+        - Ref: InstanceRole
+
+  BrendaInfrastructureConfiguration:
+    Type: AWS::ImageBuilder::InfrastructureConfiguration
+    Properties:
+      Name: BrendaInfrastructureConfiguration
+      InstanceProfileName:
+        Ref: InstanceProfile
+      # Set of one or more instance types to use when building the instance. Image Builder will select a type
+      # based on availability.
+      InstanceTypes:
+        - "p2.xlarge"
+      # Specify an S3 bucket and EC2 Image Builder will save logs to the bucket.
+      Logging:
+        S3Logs:
+          S3BucketName:
+            Ref: ImageBuilderLogBucket
+          S3KeyPrefix: !Join [ "-", [ 'imagebuilder', !Ref "AWS::StackName" ] ]
+
+  BrendaImagePipeline:
+    Type: AWS::ImageBuilder::ImagePipeline
+    Properties: 
+      Description: AMI Builder for Brenda
+      ImageRecipeArn: 
+        Ref: BrendaImageRecipe
+      InfrastructureConfigurationArn: 
+        Ref: BrendaInfrastructureConfiguration
+      Name: BrendaImagePipeline
