@@ -910,9 +910,9 @@ The following Brenda AMIs can be used, depending on your required Blender Versio
 
 AMI ID                | Blender Version | CUDA Support?
 ---                   | ---             | --- 
+ami-036181b51acd8fd8a | Blender 2.91.2  | Yes
 ami-03bb972b1aa6051db | Blender 2.83.4  | Yes
 ami-0f423cdef7e0d3b82 | Blender 2.80    | Yes
-ami-036181b51acd8fd8a | Blender 2.91.2  | Yes
 
 ### How to create a Brenda AMI
 
