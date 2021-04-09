@@ -25,7 +25,7 @@ Resources:
 
   BrendaImageComponent:
     Type: AWS::ImageBuilder::Component
-    Properties: # TODO: branch below
+    Properties:
       Data: | 
         name: BuildBrenda
         description: Adds Brenda dependencies
@@ -43,8 +43,11 @@ Resources:
                       apt-get update
                       while pgrep apt > /dev/null; do sleep 1; done
                       apt-get install -y python3-pip gcc python3-dev libcurl4-openssl-dev git unzip snapd
+                      apt-get install libxi6 libxxf86vm1 libxfixes3 libxrender1
+                      curl -fSsl -O https://us.download.nvidia.com/tesla/460.32.03/NVIDIA-Linux-x86_64-460.32.03.run
+                      sh NVIDIA-Linux-x86_64-460.32.03.run --silent
                       snap install blender --channel=2.91/stable --classic
-                      git clone --single-branch --branch feature/ami-pipeline http://github.com/msmith93/brenda.git
+                      git clone --single-branch --branch master http://github.com/msmith93/brenda.git
                       pushd brenda
                       pip3 install -Ur requirements.txt
                       pip3 install -U .
@@ -81,7 +84,7 @@ Resources:
         - ComponentArn:
             Ref: BrendaImageComponent
       Name: BrendaImageRecipe
-      ParentImage: ami-02e86b825fe559330
+      ParentImage: ami-013f17f36f8b1fefb
       Version: 1.0.0
 
   InstanceProfile:
@@ -99,7 +102,7 @@ Resources:
       # Set of one or more instance types to use when building the instance. Image Builder will select a type
       # based on availability.
       InstanceTypes:
-        - "t3.medium"
+        - "p2.xlarge"
       # Specify an S3 bucket and EC2 Image Builder will save logs to the bucket.
       Logging:
         S3Logs:
