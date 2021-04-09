@@ -1,5 +1,14 @@
 AWSTemplateFormatVersion: 2010-09-09
 
+Parameters:
+  BlenderVersion:
+    Type: String
+    Default: 2.91
+    Description: Blender version to install on AMI
+  NvidiaDriverVersion:
+    Type: String
+    Default: 460.32.03
+
 Resources:
   ImageBuilderLogBucket:
     Type: AWS::S3::Bucket
@@ -26,7 +35,7 @@ Resources:
   BrendaImageComponent:
     Type: AWS::ImageBuilder::Component
     Properties:
-      Data: | 
+      Data: !Sub | 
         name: BuildBrenda
         description: Adds Brenda dependencies
         schemaVersion: 1.0
@@ -44,9 +53,9 @@ Resources:
                       while pgrep apt > /dev/null; do sleep 1; done
                       apt-get install -y python3-pip gcc python3-dev libcurl4-openssl-dev git unzip snapd
                       apt-get install libxi6 libxxf86vm1 libxfixes3 libxrender1
-                      curl -fSsl -O https://us.download.nvidia.com/tesla/460.32.03/NVIDIA-Linux-x86_64-460.32.03.run
-                      sh NVIDIA-Linux-x86_64-460.32.03.run --silent
-                      snap install blender --channel=2.91/stable --classic
+                      curl -fSsl -O https://us.download.nvidia.com/tesla/${NvidiaDriverVersion}/NVIDIA-Linux-x86_64-${NvidiaDriverVersion}.run
+                      sh NVIDIA-Linux-x86_64-${NvidiaDriverVersion}.run --silent
+                      snap install blender --channel=${BlenderVersion}/stable --classic
                       git clone --single-branch --branch master http://github.com/msmith93/brenda.git
                       pushd brenda
                       pip3 install -Ur requirements.txt
@@ -83,7 +92,10 @@ Resources:
       Components: 
         - ComponentArn:
             Ref: BrendaImageComponent
-      Name: BrendaImageRecipe
+      Name: brenda-blender-python3
+      Tags:
+        blenderVersion: 
+          Ref: BlenderVersion 
       ParentImage: ami-013f17f36f8b1fefb
       Version: 1.0.0
 
