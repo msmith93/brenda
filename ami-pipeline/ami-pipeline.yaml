@@ -3,11 +3,14 @@ AWSTemplateFormatVersion: 2010-09-09
 Parameters:
   BlenderVersion:
     Type: String
-    Default: 2.91
+    Default: 2.92
     Description: Blender version to install on AMI
   NvidiaDriverVersion:
     Type: String
     Default: 460.32.03
+  AmiPipelineVersion:
+    Type: String
+    Default: 1.0.1
 
 Resources:
   ImageBuilderLogBucket:
@@ -84,7 +87,8 @@ Resources:
       Description: Brenda build component
       Name: BuildBrendaComponent
       Platform: Linux
-      Version: 1.0.0
+      Version:
+        Ref: AmiPipelineVersion
 
   BrendaImageRecipe:
     Type: AWS::ImageBuilder::ImageRecipe
@@ -97,7 +101,8 @@ Resources:
         blenderVersion: 
           Ref: BlenderVersion 
       ParentImage: ami-013f17f36f8b1fefb
-      Version: 1.0.0
+      Version:
+        Ref: AmiPipelineVersion
 
   InstanceProfile:
     Type: AWS::IAM::InstanceProfile
